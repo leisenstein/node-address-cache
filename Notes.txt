@@ -1,0 +1,4 @@
+// Start with "npm init"
+
+node-persist => Save variables and be able to restore even if app restarted
+
