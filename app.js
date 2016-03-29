@@ -8,29 +8,7 @@ var jsonParser = bodyParser.json();
 var defaultRoutes = require('./routes/index.js');
 var addresscacheRoutes = require('./routes/addresscache.js');
 
-
-
-// // Mongo config
-// var mongoose = require('mongoose');
-// mongoose.connect('mongodb://prodsa:password@ds025389.mlab.com:25389/acnode');
-// //////
-
-// var Schema = mongoose.Schema;
-// var addresscacheSchema = {
-// 	address1: String,
-// 	address2: String,
-// 	address3: String,
-// 	city: String,
-// 	state: String,
-// 	zip: String,
-// 	hashcode: String,
-// 	latitude: Number,
-// 	longitude: Number
-// };
-// var AddressCache = mongoose.model('AddressCache', addresscacheSchema);
-
-// ///////
-
+console.log('Starting app.js ......');
 app.use(middleware.logger);
 app.use('/', express.static(__dirname + '/public'));
 
