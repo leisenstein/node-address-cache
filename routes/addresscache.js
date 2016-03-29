@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 var bodyParser = require('body-parser');
 var jsonParser = bodyParser.json();
-var utils = require('./lib/utils.js');
+var utils = require('../lib/utils.js');
 // Mongo config
 var mongoose = require('mongoose');
 mongoose.connect('mongodb://prodsa:password@ds025389.mlab.com:25389/acnode');
