@@ -146,14 +146,21 @@ router.get('/nolocation', function(req, res) {
 // intercept route, json parser middleware runs, then calls next()
 router.post('/:addr1/:addr2/:addr3/:city/:state/:zip/:hash/:lat/:long', jsonParser , function(req, res) {
 	// save to db
+	var hashCode = utils.getAddressHashCode(req.params.addr1,
+											req.params.addr2,
+											req.params.addr3,
+											req.params.city,
+											req.params.state,
+											req.params.zip);
+
 	var ac = AddressCache({
 		address1: req.params.addr1,
 		address2: req.params.addr2,
 		address3: req.params.addr3,
 		city: req.params.city,
 		state: req.params.state,
-		zip: utils.fiveDigitZip(req.params.zip),
-		hashcode: req.params.hash,
+		zip: req.params.zip,
+		hashcode: hashCode,
 		latitude: req.params.lat,
 		longitude: req.params.long
 	});

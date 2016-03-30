@@ -8,7 +8,7 @@ var jsonParser = bodyParser.json();
 var defaultRoutes = require('./routes/index.js');
 var addresscacheRoutes = require('./routes/addresscache.js');
 
-console.log('Starting app.js ......');
+console.log('Starting node-address-cache  ......');	
 app.use(middleware.logger);
 app.use('/', express.static(__dirname + '/public'));
 
