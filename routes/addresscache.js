@@ -66,7 +66,7 @@ router.get('/findByHashCode/:hash', function(req, res) {
 router.get('/findByPartialAddress/:addr1/:city/:state/:zip5', function(req, res) {
 	// get from database
 	var zip5 = utils.fiveDigitZip(req.params.zip5);
-	var items = AddressCache.find({ address1: req.params.addr1,
+	var items = AddressCache.find({ address1: new RegExp('^' + req.params.addr1 + '$', "i"),
 						city: new RegExp('^' + req.params.city + '$', "i"),
 						state: new RegExp('^' + req.params.state + '$', "i"),
 					    zip: zip5 }, function(err, items) {
@@ -97,8 +97,8 @@ router.get('/findbyCityStateZip/:city/:state/:zip5', function(req, res) {
 router.get('/findByCityState/:city/:state', function(req, res) {
 	// get from database
 	var items = AddressCache.find({ city: new RegExp('^' + req.params.city + '$', "i"),
-						state: new RegExp('^' + req.params.state + '$', "i"), function(err, items) {
-		if(err) {
+						state: new RegExp('^' + req.params.state + '$', "i")}, function(err, items) {
+		if(err) {	
 			throw err;
 		} 
 
@@ -109,7 +109,7 @@ router.get('/findByCityState/:city/:state', function(req, res) {
 
 router.get('/findByState/:state', function(req, res) {
 	// get from database
-	var items = AddressCache.find({ state: new RegExp('^' + req.params.state + '$', "i"), function(err, items) {
+	var items = AddressCache.find({ state: new RegExp('^' + req.params.state + '$', "i")}, function(err, items) {
 		if(err) {
 			throw err;
 		} 
