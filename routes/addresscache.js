@@ -13,8 +13,8 @@ var utils = require('../lib/utils.js');
 var mongoose = require('mongoose');
 mongoose.connect('mongodb://prodsa:password@ds025389.mlab.com:25389/acnode');
 
-var Schema = mongoose.Schema;
-var addresscacheSchema = {
+//var Schema = mongoose.Schema;
+var addresscacheSchema = mongoose.Schema({
 	address1: String,
 	address2: String,
 	address3: String,
@@ -23,8 +23,25 @@ var addresscacheSchema = {
 	zip: String,
 	hashcode: String,
 	latitude: Number,
-	longitude: Number
-};
+	longitude: Number,
+	created_at: Date,
+	updated_at: Date
+});
+
+addresscacheSchema.pre('save', function(next) {
+	// runs before every save
+ 	var currentDate = new Date();
+  
+ 	// change the updated_at field to current date
+  	this.updated_at = currentDate;
+
+	// if created_at doesn't exist, add to that field
+	if (!this.created_at)
+		this.created_at = currentDate;
+
+	next();
+});
+
 var AddressCache = mongoose.model('AddressCache', addresscacheSchema);
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -35,7 +52,6 @@ var AddressCache = mongoose.model('AddressCache', addresscacheSchema);
 // GETs
 ////////////////////////////////////////////////////////////////////////////////////////
 router.get('/:id', function(req, res) {
-	// get from database
 	var items = AddressCache.find({ _id: req.params.id }, function(err, item) {
 		if(err) {
 			throw err;
@@ -51,7 +67,6 @@ router.get('/:id', function(req, res) {
 });
 
 router.get('/findByHashCode/:hash', function(req, res) {
-	// get from database
 	var items = AddressCache.find({ hashcode: req.params.hash }, function(err, item) {
 		if(err) {
 			throw err;
@@ -64,7 +79,6 @@ router.get('/findByHashCode/:hash', function(req, res) {
 });
 
 router.get('/findByPartialAddress/:addr1/:city/:state/:zip5', function(req, res) {
-	// get from database
 	var zip5 = utils.fiveDigitZip(req.params.zip5);
 	var items = AddressCache.find({ address1: new RegExp('^' + req.params.addr1 + '$', "i"),
 						city: new RegExp('^' + req.params.city + '$', "i"),
@@ -80,7 +94,6 @@ router.get('/findByPartialAddress/:addr1/:city/:state/:zip5', function(req, res)
 });
 
 router.get('/findbyCityStateZip/:city/:state/:zip5', function(req, res) {
-	// get from database
 	var zip5 = utils.fiveDigitZip(req.params.zip5);
 	var items = AddressCache.find({ city: new RegExp('^' + req.params.city + '$', "i"),
 						state: new RegExp('^' + req.params.state + '$', "i"),
@@ -95,7 +108,6 @@ router.get('/findbyCityStateZip/:city/:state/:zip5', function(req, res) {
 });
 
 router.get('/findByCityState/:city/:state', function(req, res) {
-	// get from database
 	var items = AddressCache.find({ city: new RegExp('^' + req.params.city + '$', "i"),
 						state: new RegExp('^' + req.params.state + '$', "i")}, function(err, items) {
 		if(err) {	
@@ -108,7 +120,6 @@ router.get('/findByCityState/:city/:state', function(req, res) {
 });
 
 router.get('/findByState/:state', function(req, res) {
-	// get from database
 	var items = AddressCache.find({ state: new RegExp('^' + req.params.state + '$', "i")}, function(err, items) {
 		if(err) {
 			throw err;
@@ -120,7 +131,6 @@ router.get('/findByState/:state', function(req, res) {
 });
 
 router.get('/findByZip5/:zip5', function(req, res) {
-	// get from database
 	var zip5 = utils.fiveDigitZip(req.params.zip5);
 	var items = AddressCache.find({ zip: zip5 }, function(err, items) {
 	    if(err) {
@@ -186,7 +196,55 @@ router.get('/findByNoLatLong', function(req, res) {
 	});
 });
 
+router.get('/getHashCodeCount/:hash', function(req, res) {
+	var hashCode = req.params.hash;
 
+	AddressCache.where({ "hashcode": hashCode }).count(function(err, itemCount) {
+		if(err) {
+			throw err;
+		} 
+
+		if(itemCount > 0) {
+			console.log('Found some records: ' + itemCount);
+			res.json({ recordCount: itemCount});
+		}
+		else if(itemCount == 0) {
+			console.log('Found 0 records');
+			res.json({ recordCount: itemCount});
+		}
+		else {
+			console.log('Undetermined record count for HashCode: ' + hashCode);
+			res.json({ recordCount: 'Undefined or NULL'});
+		}
+	});
+
+	
+});
+
+router.get('/getCountById/:id', function(req, res) {
+	var Id = req.params.id;
+
+	AddressCache.where({ "_id": Id }).count(function(err, itemCount) {
+		if(err) {
+			throw err;
+		} 
+
+		if(itemCount > 0) {
+			console.log('Found some records: ' + itemCount);
+			res.json({ recordCount: itemCount});
+		}
+		else if(itemCount == 0) {
+			console.log('Found 0 records');
+			res.json({ recordCount: itemCount});
+		}
+		else {
+			console.log('Undetermined record count for _id: ' + Id);
+			res.json({ recordCount: 'Undefined or NULL'});
+		}
+	});
+
+	
+});
 
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -194,7 +252,6 @@ router.get('/findByNoLatLong', function(req, res) {
 ////////////////////////////////////////////////////////////////////////////////////////
 // intercept route, json parser middleware runs, then calls next()
 router.post('/', jsonParser , function(req, res) {
-	// save to db
 	var hashCode = utils.getAddressHashCode(req.body.addr1,
 											req.body.addr2,
 											req.body.addr3,
@@ -202,26 +259,43 @@ router.post('/', jsonParser , function(req, res) {
 											req.body.state,
 											req.body.zip);
 
-	
-	var ac = AddressCache({
-		address1: req.body.addr1,
-		address2: req.body.addr2,
-		address3: req.body.addr3,
-		city: req.body.city,
-		state: req.body.state,
-		zip: req.body.zip,
-		hashcode: hashCode,
-		latitude: req.body.lat,
-		longitude: req.body.long
-	});
+	// Probably a good place for Promises
+	AddressCache.where({ "hashcode": hashCode }).count(function(err, itemCount) {
+		if(err) {
+			throw err;
+		} 
 
-	ac.save(function(err) {
-		if(err) throw err;
+		if(itemCount > 0) {
+			console.log('Found records: ' + itemCount + '.  Please update existing record for HashCode: ' + hashCode);
+			res.json({ 'Message' : 'Found records: ' + itemCount + '.  Please update existing record for HashCode: ' + hashCode});
+		}
+		else {
+			console.log('Nothing found for HashCode: ' + hashCode);
+			// if record already exists, we should return a message saying it already exists
+			// if you want to update a record, call the PUT method
+			var ac = AddressCache({
+				address1: req.body.addr1,
+				address2: req.body.addr2,
+				address3: req.body.addr3,
+				city: req.body.city,
+				state: req.body.state,
+				zip: req.body.zip,
+				hashcode: hashCode,
+				latitude: req.body.lat,
+				longitude: req.body.long
+			});
 
-		console.log('Adding ' + hashCode);
+			ac.save(function(err) {
+				if(err)  {
+					throw err;
+				}
+
+				console.log('Adding ' + hashCode);
+				res.send('Adding ' + hashCode);
+			});
+
+		}
 	});
-	res.send('Adding ' + hashCode);
-	console.log(req.body.hash);
 });
 
 
