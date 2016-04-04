@@ -22,6 +22,8 @@ var addresscacheSchema = mongoose.Schema({
 	state: String,
 	zip: String,
 	hashcode: String,
+	// loc: { type: [Number],  // [<longitude>, <latitude>]
+    //    	   index: '2d' }     // create the geospatial index},
 	latitude: Number,
 	longitude: Number,
 	created_at: Date,
