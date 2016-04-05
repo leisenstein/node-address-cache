@@ -22,10 +22,8 @@ var addresscacheSchema = mongoose.Schema({
 	state: String,
 	zip: String,
 	hashcode: String,
-	// loc: { type: [Number],  // [<longitude>, <latitude>]
-    //    	   index: '2d' }     // create the geospatial index},
-	latitude: Number,
-	longitude: Number,
+	loc: { type: [Number],  // [<longitude>, <latitude>]
+       	   index: '2d' },     // create the geospatial index},
 	created_at: Date,
 	updated_at: Date
 });
@@ -145,10 +143,9 @@ router.get('/findByZip5/:zip5', function(req, res) {
 });
 
 router.get('/findByLatLong/:lat/:long/:radius', function(req, res) {
-	// get from database
-	var items = AddressCache.find({ latitude: req.params.lat,
-						longitude: req.params.long,
-					    radius: req.params.radius }, function(err, items) {
+	// working
+	var items = AddressCache.find({ "loc": { "$near": [req.params.long, req.params.lat],
+					    			         "$maxDistance": req.params.radius } }, function(err, items) {
 		if(err) {
 			throw err;
 		} 
@@ -160,6 +157,8 @@ router.get('/findByLatLong/:lat/:long/:radius', function(req, res) {
 
 router.get('/findByZipAndRadius/:zip5/:radius', function(req, res) {
 	// get from database
+	// need long/lat of zipcode, then run query
+	// "loc": { "$near": [long, lat], "$maxDistance": req.params.radius } 
 	var zip5 = utils.fiveDigitZip(req.params.zip5);
 	var items = AddressCache.find({ zip: new RegExp('^' + zip5, "i"),
 					    radius: req.params.radius }, function(err, items) {
@@ -174,7 +173,8 @@ router.get('/findByZipAndRadius/:zip5/:radius', function(req, res) {
 
 router.get('/findByCityStateAndRadius/:city/:state/:radius', function(req, res) {
 	// get from database
-
+    // need long/lat of city/state, then run query
+	// "loc": { "$near": [long, lat], "$maxDistance": req.params.radius } 
 	var items = AddressCache.find({ city: new RegExp('^' + req.params.city + '$', "i"),
 						state: new RegExp('^' + req.params.state + '$', "i"),
 					    radius: req.params.radius }, function(err, items) {
@@ -284,8 +284,10 @@ router.post('/', jsonParser , function(req, res) {
 				state: req.body.state,
 				zip: req.body.zip,
 				hashcode: hashCode,
-				latitude: req.body.lat,
-				longitude: req.body.long
+				loc: [req.body.long, req.body.lat]
+
+				//latitude: req.body.lat,
+				//longitude: req.body.long
 			});
 
 			ac.save(function(err) {

@@ -1,0 +1,38 @@
+{
+   "addr1": "1 Concourse Pkwy",
+   "addr2": "Suite 300",
+   "addr3": " ",
+   "city": "Atlanta",
+   "state": "GA",
+   "zip":"30328-0300",
+   "lat": 33.9160985, 
+   "long": -84.3522319
+}
+
+{
+   "addr1": "1503 Ridgeland Ct SW",
+   "addr2": "",
+   "addr3": "",
+   "city": "Lilburn",
+   "state": "GA",
+   "zip":"30047",
+   "lat": 33.8485859, 
+   "long": -84.101913
+}
+
+
+{
+   "addr1": "1 Infinite Loop",
+   "addr2": "",
+   "addr3": " ",
+   "city": "Cupertino",
+   "state": "CA",
+   "zip":"95014",
+   "lat": 37.3317004, 
+   "long": -122.030784
+}
+
+
+
+
+
