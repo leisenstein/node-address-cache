@@ -24,6 +24,8 @@ var addresscacheSchema = mongoose.Schema({
 	hashcode: String,
 	loc: { type: [Number],  // [<longitude>, <latitude>]
        	   index: '2d' },     // create the geospatial index},
+    is_standardized: Boolean,
+    external_id: String,
 	created_at: Date,
 	updated_at: Date
 });
@@ -38,6 +40,10 @@ addresscacheSchema.pre('save', function(next) {
 	// if created_at doesn't exist, add to that field
 	if (!this.created_at)
 		this.created_at = currentDate;
+
+	if(!this.is_standardized)
+		this.is_standardized = false;
+
 
 	next();
 });
@@ -285,10 +291,13 @@ router.post('/', jsonParser , function(req, res) {
 				zip: req.body.zip,
 				hashcode: hashCode,
 				loc: [req.body.long, req.body.lat]
-
-				//latitude: req.body.lat,
-				//longitude: req.body.long
 			});
+
+			if(req.body.is_standardized)
+				ac.is_standardized = req.body.is_standardized;
+			if(req.body.external_id)
+				ac.external_id = req.body.external_id;
+
 
 			ac.save(function(err) {
 				if(err)  {
