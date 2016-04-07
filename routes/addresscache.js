@@ -15,12 +15,12 @@ mongoose.connect('mongodb://prodsa:password@ds025389.mlab.com:25389/acnode');
 
 //var Schema = mongoose.Schema;
 var addresscacheSchema = mongoose.Schema({
-	address1: String,
+	address1: { type: String, required: true },
 	address2: String,
 	address3: String,
-	city: String,
-	state: String,
-	zip: String,
+	city: { type: String, required: true },
+	state: { type: String, required: true },
+	zip: { type: String, required: true },
 	hashcode: String,
 	loc: { type: [Number],  // [<longitude>, <latitude>]
        	   index: '2d' },     // create the geospatial index},
