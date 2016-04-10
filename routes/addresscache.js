@@ -3,8 +3,8 @@ var router = express.Router();
 var bodyParser = require('body-parser');
 var jsonParser = bodyParser.json();
 var utils = require('../lib/utils.js');
-
-
+var fs = require('fs');
+var csv = require('fast-csv');
 
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -52,6 +52,85 @@ var AddressCache = mongoose.model('AddressCache', addresscacheSchema);
 
 ////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////
+
+
+router.put('/updateCsv', function(req, res) {
+	console.log('Update CSV called!');
+    var csvFilename = 'address3.csv';
+    var stats;
+    try {
+	  stats = fs.statSync(csvFilename);
+	  // console.log("File exists.");
+	}
+	catch (e) {
+	  res.json({status: "File does not exists!"});
+	}
+
+    var stream = fs.createReadStream(csvFilename);
+
+    csv.fromStream(stream, {headers: true, ignoreEmpty: true, trim: true})
+       .on("data", function(data) {
+       		//console.log(data);
+
+	    // Get HashCode
+	    var hashCode = utils.getAddressHashCode(data.Address, data.ApartmentOrSuite, "", data.City, data.State, data.PostalCode);
+	    //console.log(data.Address + ' :: ' + hashCode);
+
+	    // Find out if HashCode exists
+	    // if YES, do nothing
+	    // if NO, add record
+	    AddressCache.where({ "hashcode": hashCode }).count(function(err, itemCount) {
+			if(err) {
+				throw err;
+			} 
+			else {
+
+				if(itemCount > 0) {
+					console.log('HashCode: '  + hashCode + ' already exists for AddressId : ' + data.AddressId);
+				}
+				else {
+					//console.log('Nothing found for HashCode: ' + hashCode);
+					// if record already exists, we should return a message saying it already exists
+					// if you want to update a record, call the PUT method
+					var ac = AddressCache({
+						address1: data.Address,
+						address2: data.ApartmentOrSuite,
+						address3: "",
+						city: data.City,
+						state: data.State,
+						zip: data.PostalCode,
+						hashcode: hashCode,
+						loc: [data.Longitude, data.Latitude],
+						external_id: data.AddressId
+					});
+
+
+					try{
+						ac.save(function(err) {
+						if(err)  {
+							//throw err;
+							console.log('Skipping record: ' + data.AddressId);
+						}
+
+						//console.log('Adding ' + hashCode);
+					});  // ac.save
+					}
+					catch(saveError) {
+						console.log('Catch saveError: ' + data.AddressId);
+					}
+					
+				}  // else itemCount <= 0
+
+
+			}  // else no err
+
+			
+		});  // AddressCache.where
+	});  // csv.fromStream  on('data')
+
+    res.json({status: "complete"});
+}); // outer.put('/updated_atateCsv', function(req, res) {
+
 
 
 ////////////////////////////////////////////////////////////////////////////////////////
